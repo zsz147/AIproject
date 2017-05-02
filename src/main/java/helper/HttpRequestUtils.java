@@ -48,6 +48,7 @@ public class HttpRequestUtils {
 	                entity.setContentType("application/json");
 	                method.setEntity(entity);
 	            }
+	            //System.out.println("method:"+method);
 	            HttpResponse result = httpClient.execute(method);
 	            url = URLDecoder.decode(url, "UTF-8");
 	            /**请求发送成功，并得到响应**/
