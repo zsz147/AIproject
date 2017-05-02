@@ -1,6 +1,6 @@
 package THU_Guide;
 
-import helper.HttpRequestUtils;
+import helper.*;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
@@ -12,9 +12,18 @@ public class App
 {
     public static void main( String[] args )
     {
+        
+    	Map map=new Map();       
     	String ak="uvA18GaMEwv8Lezh7OFow3xlnVTSxJk0";
     	String baidu_ak="y5wUhthyEOfD9SG0fzBNrUGjBGp8QfBa";
+    	String origin_address="清华大学清芬园";
+    	String destination_address="清华大学-罗姆楼";
+    	String mode="riding";
     	
+    	String result=map.getdirection(origin_address,destination_address,mode);
+        System.out.println(result);    	
+    	
+    	/*
     	String origin_address="清华大学清芬园";
     	String url_baidu_map_origin="http://api.map.baidu.com/geocoder/v2/?address="+origin_address+"&output=json&ak="+baidu_ak;
     	System.out.println( url_baidu_map_origin);
@@ -46,7 +55,7 @@ public class App
        	String url_baidu_map_direction="http://api.map.baidu.com/direction/v1?mode="+mode+"&origin="+origin_address+"&destination="+destination_address+"&origin_region=北京&destination_region=北京"+"&output=json&ak="+baidu_ak;
     	System.out.println( url_baidu_map_direction);
     	HttpRequestUtils httpquest_direction=new HttpRequestUtils();
-    	JSONObject baidu_map_direction=httpquest_origin.httpGet(url_baidu_map_direction);
+    	JSONObject baidu_map_direction=httpquest_direction.httpGet(url_baidu_map_direction);
     	System.out.println( baidu_map_direction);
     	System.out.println( baidu_map_direction.getJSONObject("result"));
     	JSONArray steps=baidu_map_direction.getJSONObject("result").getJSONArray("routes").getJSONObject(0).getJSONArray("steps");
@@ -57,9 +66,11 @@ public class App
     		System.out.println(steps.getJSONObject(i).get("instructions").toString());
     		//System.out.println(steps.getJSONObject(i).getJSONObject("instructions"));
     	}
-    	
-    	
-    	
+    	*/
+    	/*
+    	MscTest test=new MscTest();
+    	test.listen();
+    	*/
     	/*
     	JSONObject nlu_input=new JSONObject();
     	
@@ -85,4 +96,5 @@ public class App
         System.out.println( kb_out);
         */
     }
+    
 }
