@@ -17,9 +17,10 @@ public class Map {
     	//System.out.println( baidu_map_direction);
     	//System.out.println( baidu_map_direction.getJSONObject("result"));
     	JSONArray steps=baidu_map_direction.getJSONObject("result").getJSONArray("routes").getJSONObject(0).getJSONArray("steps");
-    	
+    	String distance=baidu_map_direction.getJSONObject("result").getJSONArray("routes").getJSONObject(0).get("distance").toString();
+    	result+=distance+'$';
     	for(int i=0;i<steps.size();i++){
-    		result+=steps.getJSONObject(i).get("instructions").toString()+"\r\n";
+    		result+=steps.getJSONObject(i).get("instructions").toString();
     		//System.out.println(steps.getJSONObject(i).get("instructions").toString());
     		//System.out.println(steps.getJSONObject(i).getJSONObject("instructions"));
     	}

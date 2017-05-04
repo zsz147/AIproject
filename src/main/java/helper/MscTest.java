@@ -21,6 +21,43 @@ import com.iflytek.cloud.speech.UserWords;
 public class MscTest {
 	private static final String APPID = "59082d33";
 	
+	
+	public RecognizerListener mRecoListener = new RecognizerListener(){
+        //听写结果回调接口(返回Json格式结果，用户可参见附录)；
+        //一般情况下会通过onResults接口多次返回结果，完整的识别内容是多次结果的累加；
+        //关于解析Json的代码可参见MscDemo中JsonParser类；
+        //isLast等于true时会话结束。
+        public void onResult(RecognizerResult results, boolean isLast){
+       	 System.out.println("in onResult");
+            DebugLog.Log("Result:"+results.getResultString ());
+            if(isLast){
+           	 System.out.println("end");
+           	 return ;
+            }
+        }
+        //会话发生错误回调接口
+        public void onError(SpeechError error) {
+       	 System.out.println(error.getErrorDesc());
+       	 System.out.println(error.getErrorCode());
+            //error.getErrorDesc(); //获取错误码描述
+        }
+        //开始录音
+        public void onBeginOfSpeech() {}
+        //音量值0~30
+        public void onVolumeChanged(int volume){
+       	 if(volume==0){
+       		 volume=1;
+       	 }else if(volume >=6){
+       		 volume=6;
+       	 }
+        }
+        //结束录音
+        public void onEndOfSpeech() {}
+        //扩展用接口
+        public void onEvent(int eventType,int arg1,int arg2,String msg) {}
+		 
+    };
+	
 	private boolean mIsEndOfSpeech = false;
 	
 	private static StringBuffer mResult = new StringBuffer();

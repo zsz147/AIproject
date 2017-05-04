@@ -1,5 +1,14 @@
 package THU_Guide;
 
+import com.iflytek.cloud.speech.RecognizerListener;
+import com.iflytek.cloud.speech.RecognizerResult;
+import com.iflytek.cloud.speech.SpeechConstant;
+import com.iflytek.cloud.speech.SpeechError;
+import com.iflytek.cloud.speech.SpeechRecognizer;
+import com.iflytek.cloud.speech.SpeechSynthesizer;
+import com.iflytek.cloud.speech.SpeechUtility;
+import com.iflytek.cloud.speech.SynthesizerListener;
+
 import helper.*;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -10,19 +19,82 @@ import net.sf.json.JSONObject;
  */
 public class App 
 {
+	
+	
     public static void main( String[] args )
     {
-        
+    	
+    	Aiplatform aiplatform=new Aiplatform();
     	Map map=new Map();       
+    	String nlu_input="我要从fit楼到罗姆楼怎么走？";
+    	System.out.println("input:"+nlu_input);
+    	System.out.println("------waiting for nlu response-----");
+    	JSONObject nlu_result=aiplatform.nlu(nlu_input);
+    	System.out.println("------get nlu response-----");
+    	
+    	if(nlu_result.get("errno").toString().equals("0")){
+    		String act_type=nlu_result.getJSONObject("msg").getJSONArray("patternlist").getJSONObject(0).get("_act_type").toString();
+    		//System.out.println(act_type);
+    		if(act_type.equals("guide0")){
+    			String place=nlu_result.getJSONObject("msg").getJSONArray("patternlist").getJSONObject(0).get("place").toString();
+    			int addr_offset=place.indexOf(',');
+    			String src_addr=place.substring(0, addr_offset);
+    			String dst_addr=place.substring(addr_offset+1, place.length());
+    			String mode="walking";
+    			String map_result=map.getdirection(src_addr, dst_addr, mode);
+    			int distance_offset=map_result.indexOf('$');
+    			String distance=map_result.substring(0, distance_offset);
+    			String routes=map_result.substring(distance_offset+1, map_result.length());
+    			//System.out.println(place);
+    			//System.out.println(addr_offset);
+    			//System.out.println(src_addr);
+    			//System.out.println(dst_addr);
+    			//System.out.println(map_result);
+    			//System.out.println(distance);
+    			//System.out.println(routes);
+    			JSONObject nlg_input=new JSONObject();
+    			nlg_input.put("_act_type", "guide0");
+    			nlg_input.put("p1", src_addr);
+    			nlg_input.put("p2", dst_addr);
+    			nlg_input.put("distance", distance);
+    			nlg_input.put("route", routes);
+    			System.out.println("-----waiting for nlg response-----");
+    			JSONObject nlg_result=aiplatform.nlg(nlg_input);
+    			System.out.println("-----get nlg response-----");
+    			if(nlg_result.get("errno").toString().equals("0")){
+    				String output=nlg_result.getJSONArray("msg").getJSONObject(0).get("output").toString();
+    		    	System.out.println("output:"+output);
+    			}
+    			
+    		}
+    		//System.out.println(nlu_result);
+    		
+    	}else{
+    		System.out.println("------request error-----");
+    	}
+    	/*
     	String ak="uvA18GaMEwv8Lezh7OFow3xlnVTSxJk0";
     	String baidu_ak="y5wUhthyEOfD9SG0fzBNrUGjBGp8QfBa";
     	String origin_address="清华大学清芬园";
     	String destination_address="清华大学-罗姆楼";
     	String mode="riding";
-    	
-    	String result=map.getdirection(origin_address,destination_address,mode);
-        System.out.println(result);    	
-    	
+    	*/
+    	//String result=map.getdirection(origin_address,destination_address,mode);
+        //System.out.println(result);    	
+    	/*
+        SpeechRecognizer mIat= SpeechRecognizer.createRecognizer();
+        mIat.setParameter(SpeechConstant.DOMAIN, "iat");
+        mIat.setParameter(SpeechConstant.LANGUAGE, "zh_cn");
+        mIat.setParameter(SpeechConstant.ACCENT, "mandarin ");
+        mIat.setParameter(SpeechConstant.APPID, "59082d33");
+        mIat.setParameter(SpeechConstant.VAD_BOS, "10000");
+        mIat.setParameter(SpeechConstant.VAD_EOS, "2000");
+        System.out.println("before startListening");
+        SpeechUtility.createUtility("appid=59082d33");
+        MscTest test=new MscTest();
+        mIat.startListening(test.mRecoListener);
+        System.out.println("after startListening");
+        */
     	/*
     	String origin_address="清华大学清芬园";
     	String url_baidu_map_origin="http://api.map.baidu.com/geocoder/v2/?address="+origin_address+"&output=json&ak="+baidu_ak;
@@ -67,6 +139,24 @@ public class App
     		//System.out.println(steps.getJSONObject(i).getJSONObject("instructions"));
     	}
     	*/
+    	
+    	
+    	/*
+    	SpeechSynthesizer mTts= SpeechSynthesizer.createSynthesizer( );
+    	//2.合成参数设置，详见《MSC Reference Manual》SpeechSynthesizer 类
+    	mTts.setParameter(SpeechConstant.VOICE_NAME, "xiaoyan");//设置发音人
+    	mTts.setParameter(SpeechConstant.SPEED, "50");//设置语速
+    	mTts.setParameter(SpeechConstant.VOLUME, "80");//设置音量，范围0~100
+    	//设置合成音频保存位置（可自定义保存位置），保存在“./tts_test.pcm”
+    	//如果不需要保存合成音频，注释该行代码
+    	//mTts.setParameter(SpeechConstant.TTS_AUDIO_PATH, "./tts_test.pcm");
+    	//3.开始合成
+    	mTts.startSpeaking("语音合成测试程序", mSynListener);
+    	*/
+    	
+    	
+    	
+    	
     	/*
     	MscTest test=new MscTest();
     	test.listen();

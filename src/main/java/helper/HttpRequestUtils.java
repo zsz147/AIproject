@@ -8,14 +8,14 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+//import org.slf4j.Logger;
+//import org.slf4j.LoggerFactory;
  
 import java.io.IOException;
 import java.net.URLDecoder;
 
 public class HttpRequestUtils {
-	 private static Logger logger = LoggerFactory.getLogger(HttpRequestUtils.class);    //日志记录
+	 //private static Logger logger = LoggerFactory.getLogger(HttpRequestUtils.class);    //日志记录
 	 
 	    /**
 	     * httpPost
@@ -63,11 +63,11 @@ public class HttpRequestUtils {
 	                    /**把json字符串转换成json对象**/
 	                    jsonResult = JSONObject.fromObject(str);
 	                } catch (Exception e) {
-	                    logger.error("post请求提交失败:" + url, e);
+	                    //logger.error("post请求提交失败:" + url, e);
 	                }
 	            }
 	        } catch (IOException e) {
-	            logger.error("post请求提交失败:" + url, e);
+	            //logger.error("post请求提交失败:" + url, e);
 	        }
 	        return jsonResult;
 	    }
@@ -95,10 +95,10 @@ public class HttpRequestUtils {
 	                jsonResult = JSONObject.fromObject(strResult);
 	                url = URLDecoder.decode(url, "UTF-8");
 	            } else {
-	                logger.error("get请求提交失败:" + url);
+	                //logger.error("get请求提交失败:" + url);
 	            }
 	        } catch (IOException e) {
-	            logger.error("get请求提交失败:" + url, e);
+	            //logger.error("get请求提交失败:" + url, e);
 	        }
 	        return jsonResult;
 	    }

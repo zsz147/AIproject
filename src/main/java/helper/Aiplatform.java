@@ -2,7 +2,7 @@ package helper;
 
 import net.sf.json.JSONObject;
 
-public class aiplatform {
+public class Aiplatform {
 	public String ak="uvA18GaMEwv8Lezh7OFow3xlnVTSxJk0";
 	public JSONObject nlu(String input){
 		JSONObject nlu_input=new JSONObject();
