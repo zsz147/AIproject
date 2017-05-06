@@ -1,5 +1,7 @@
 package THU_Guide;
 
+import java.util.Scanner;
+
 import com.iflytek.cloud.speech.RecognizerListener;
 import com.iflytek.cloud.speech.RecognizerResult;
 import com.iflytek.cloud.speech.SpeechConstant;
@@ -10,6 +12,7 @@ import com.iflytek.cloud.speech.SpeechUtility;
 import com.iflytek.cloud.speech.SynthesizerListener;
 
 import helper.*;
+import stage.*;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
@@ -20,28 +23,42 @@ import net.sf.json.JSONObject;
 public class App 
 {
 	
-	
+
     public static void main( String[] args )
     {
     	
+    	while(true){
+    	Scanner sc=new Scanner(System.in);
     	Aiplatform aiplatform=new Aiplatform();
     	Map map=new Map();       
-    	String nlu_input="我要从fit楼到罗姆楼怎么走？";
-    	System.out.println("input:"+nlu_input);
+    	//String nlu_input="我要从清芬园到罗姆楼怎么走？";
+    	String nlu_input=sc.nextLine();
+    	//System.out.println("input:"+nlu_input);
     	System.out.println("------waiting for nlu response-----");
     	JSONObject nlu_result=aiplatform.nlu(nlu_input);
     	System.out.println("------get nlu response-----");
     	
     	if(nlu_result.get("errno").toString().equals("0")){
-    		String act_type=nlu_result.getJSONObject("msg").getJSONArray("patternlist").getJSONObject(0).get("_act_type").toString();
+    		//System.out.println(nlu_result);
+    		JSONArray patternlist=nlu_result.getJSONObject("msg").getJSONArray("patternlist");
+    		int max_level=0;
+    		int max_offset=-1;
+    		for(int i=0;i<patternlist.size();i++){
+    			
+    			if(Integer.parseInt(patternlist.getJSONObject(i).get("_level").toString())>max_level){
+    				max_level=Integer.parseInt(patternlist.getJSONObject(i).get("_level").toString());
+    				max_offset=i;
+    			}
+    		}
+    		String act_type=nlu_result.getJSONObject("msg").getJSONArray("patternlist").getJSONObject(max_offset).get("_act_type").toString();
     		//System.out.println(act_type);
     		if(act_type.equals("guide0")){
-    			String place=nlu_result.getJSONObject("msg").getJSONArray("patternlist").getJSONObject(0).get("place").toString();
-    			int addr_offset=place.indexOf(',');
-    			String src_addr=place.substring(0, addr_offset);
-    			String dst_addr=place.substring(addr_offset+1, place.length());
+    			//String place=nlu_result.getJSONObject("msg").getJSONArray("patternlist").getJSONObject(0).get("place").toString();
+    			//int addr_offset=place.indexOf(',');
+    			String src_addr=nlu_result.getJSONObject("msg").getJSONArray("patternlist").getJSONObject(max_offset).get("srcplace").toString();
+    			String dst_addr=nlu_result.getJSONObject("msg").getJSONArray("patternlist").getJSONObject(max_offset).get("dstplace").toString();
     			String mode="walking";
-    			String map_result=map.getdirection(src_addr, dst_addr, mode);
+    			String map_result=map.getdirection("清华大学"+src_addr,"清华大学"+ dst_addr, mode);
     			int distance_offset=map_result.indexOf('$');
     			String distance=map_result.substring(0, distance_offset);
     			String routes=map_result.substring(distance_offset+1, map_result.length());
@@ -65,7 +82,140 @@ public class App
     				String output=nlg_result.getJSONArray("msg").getJSONObject(0).get("output").toString();
     		    	System.out.println("output:"+output);
     			}
+    		}
+    		if(act_type.equals("guide1")){
+    			Guide_stage guide_stage=new Guide_stage();
+    			String src_addr=nlu_result.getJSONObject("msg").getJSONArray("patternlist").getJSONObject(max_offset).get("srcplace").toString();
+    			guide_stage.src_addr=src_addr;
+    			guide_stage.mode="walking";
     			
+    			JSONObject nlg_input=new JSONObject();
+    			while(!guide_stage.IsReady()){
+    				nlg_input.put("_act_type", "guide2");
+    				nlg_input.put("p1", src_addr);
+    				System.out.println("-----waiting for nlg response-----");
+    				JSONObject nlg_result=aiplatform.nlg(nlg_input);
+    				System.out.println("-----get nlg response-----");
+    				if(nlg_result.get("errno").toString().equals("0")){
+        				String output=nlg_result.getJSONArray("msg").getJSONObject(0).get("output").toString();
+        		    	System.out.println("output:"+output);
+        			}
+    				
+    				String str=null;
+    				str=sc.nextLine();
+    				nlu_input=str;
+    				System.out.println("------waiting for nlu response-----");
+    		    	nlu_result=aiplatform.nlu(nlu_input);
+    		    	System.out.println("------get nlu response-----");
+    		    	act_type=nlu_result.getJSONObject("msg").getJSONArray("patternlist").getJSONObject(0).get("_act_type").toString();
+    		    	if(act_type.equals("guideinfo")){
+    		    		String dst_addr=nlu_result.getJSONObject("msg").getJSONArray("patternlist").getJSONObject(0).get("place").toString();
+    		    		guide_stage.dst_addr=dst_addr;
+    		    	}
+    			}
+    			String map_result=map.getdirection("清华大学"+guide_stage.src_addr, "清华大学"+guide_stage.dst_addr, guide_stage.mode);
+    			int distance_offset=map_result.indexOf('$');
+    			String distance=map_result.substring(0, distance_offset);
+    			String routes=map_result.substring(distance_offset+1, map_result.length());
+    			
+    			nlg_input.put("_act_type", "guide0");
+    			nlg_input.put("p1", guide_stage.src_addr);
+    			nlg_input.put("p2", guide_stage.dst_addr);
+    			nlg_input.put("distance", distance);
+    			nlg_input.put("route", routes);
+    			System.out.println("-----waiting for nlg response-----");
+    			JSONObject nlg_result=aiplatform.nlg(nlg_input);
+    			System.out.println("-----get nlg response-----");
+    			if(nlg_result.get("errno").toString().equals("0")){
+    				String output=nlg_result.getJSONArray("msg").getJSONObject(0).get("output").toString();
+    		    	System.out.println("output:"+output);
+    			}
+    			
+    			
+    		}
+    		if(act_type.equals("guide2")){
+    			Guide_stage guide_stage=new Guide_stage();
+    			String dst_addr=nlu_result.getJSONObject("msg").getJSONArray("patternlist").getJSONObject(max_offset).get("dstplace").toString();
+    			guide_stage.dst_addr=dst_addr;
+    			guide_stage.mode="walking";
+    			
+    			JSONObject nlg_input=new JSONObject();
+    			while(!guide_stage.IsReady()){
+    				nlg_input.put("_act_type", "guide1");
+    				nlg_input.put("p2", dst_addr);
+    				System.out.println("-----waiting for nlg response-----");
+    				JSONObject nlg_result=aiplatform.nlg(nlg_input);
+    				System.out.println("-----get nlg response-----");
+    				if(nlg_result.get("errno").toString().equals("0")){
+        				String output=nlg_result.getJSONArray("msg").getJSONObject(0).get("output").toString();
+        		    	System.out.println("output:"+output);
+        			}
+    				
+    				String str=null;
+    				str=sc.nextLine();
+    				nlu_input=str;
+    				System.out.println("------waiting for nlu response-----");
+    		    	nlu_result=aiplatform.nlu(nlu_input);
+    		    	System.out.println("------get nlu response-----");
+    		    	//System.out.println(nlu_result);
+    		    	act_type=nlu_result.getJSONObject("msg").getJSONArray("patternlist").getJSONObject(0).get("_act_type").toString();
+    		    	if(act_type.equals("guideinfo")){
+    		    		//System.out.println(act_type.equals("guideinfo"));
+    		    		String src_addr=nlu_result.getJSONObject("msg").getJSONArray("patternlist").getJSONObject(0).get("place").toString();
+    		    		guide_stage.src_addr=src_addr;
+    		    	}
+    			}
+    			String map_result=map.getdirection("清华大学"+guide_stage.src_addr, "清华大学"+guide_stage.dst_addr, guide_stage.mode);
+    			int distance_offset=map_result.indexOf('$');
+    			String distance=map_result.substring(0, distance_offset);
+    			String routes=map_result.substring(distance_offset+1, map_result.length());
+    			
+    			nlg_input.put("_act_type", "guide0");
+    			nlg_input.put("p1", guide_stage.src_addr);
+    			nlg_input.put("p2", guide_stage.dst_addr);
+    			nlg_input.put("distance", distance);
+    			nlg_input.put("route", routes);
+    			System.out.println("-----waiting for nlg response-----");
+    			JSONObject nlg_result=aiplatform.nlg(nlg_input);
+    			System.out.println("-----get nlg response-----");
+    			if(nlg_result.get("errno").toString().equals("0")){
+    				String output=nlg_result.getJSONArray("msg").getJSONObject(0).get("output").toString();
+    		    	System.out.println("output:"+output);
+    			}
+    		}
+    		if(act_type.equals("recommend11")){
+    			JSONObject nlg_input=new JSONObject();
+    			String type=nlu_result.getJSONObject("msg").getJSONArray("patternlist").getJSONObject(max_offset).get("type").toString();
+    			JSONObject kb_input=new JSONObject();
+    			//System.out.println( type);
+    			kb_input.put("sparql", "select ?type where{?type  <http://ciia.cs.tsinghua.edu.cn/dialog#type> \""+type+"\"}");
+    	    	//kb_input.put("sparql", "select?type?where{?type.}");
+    	    	//System.out.println( "select ?type where{?type  <http://ciia.cs.tsinghua.edu.cn/dialog#type> \"食堂\"}");
+    	    	JSONObject kb_result=aiplatform.kb(kb_input);
+    	    	String list="";
+    	    	if(kb_result.get("errno").toString().equals("0")){
+    	    		JSONArray msg=kb_result.getJSONArray("msg");
+    	    		for(int i=0;i<msg.size();i++){
+    	    			String type_result=msg.getJSONObject(i).getString("type").toString();
+    	    			//System.out.println("before replace:"+type_result);
+    	    			type_result=type_result.replace("http://ciia.cs.tsinghua.edu.cn/dialog/", "");
+    	    			//System.out.println("after replace:"+type_result);
+    	    			list+=type_result+";";
+    	    		}
+    	    	}else{
+    	    		System.out.println("kb query error");
+    	    	}
+    	        //System.out.println( list);
+    	        nlg_input.put("_act_type", "recommend11");
+    			nlg_input.put("type", type);
+    			nlg_input.put("list", list);
+    			System.out.println("-----waiting for nlg response-----");
+    			JSONObject nlg_result=aiplatform.nlg(nlg_input);
+    			System.out.println("-----get nlg response-----");
+    			if(nlg_result.get("errno").toString().equals("0")){
+    				String output=nlg_result.getJSONArray("msg").getJSONObject(0).get("output").toString();
+    		    	System.out.println("output:"+output);
+    			}
     		}
     		//System.out.println(nlu_result);
     		
@@ -186,5 +336,5 @@ public class App
         System.out.println( kb_out);
         */
     }
-    
+    }
 }
