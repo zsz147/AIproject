@@ -18,6 +18,7 @@ public class Map {
     	//System.out.println( baidu_map_direction);
     	//System.out.println( baidu_map_direction);
     	//JSONArray steps=baidu_map_direction.getJSONObject("result").getJSONArray("routes").getJSONObject(0).getJSONArray("steps");
+    	if(baidu_map_direction.get("type").toString().equals("2")){
     	String distance=baidu_map_direction.getJSONObject("result").getJSONArray("routes").getJSONObject(0).get("distance").toString();
     	String riding_time=baidu_map_direction.getJSONObject("result").getJSONArray("routes").getJSONObject(0).get("duration").toString();
     	result+=distance+'$'+sectomin(riding_time)+'$';
@@ -36,6 +37,9 @@ public class Map {
     	result=result.replaceAll("</b>", "");
     	//System.out.println(result);
     	return result;
+    	}else{
+    		return "error";
+    	}
     }
 	public String sectomin(String second){
 		int tmp=Integer.parseInt(second);

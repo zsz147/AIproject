@@ -38,11 +38,13 @@ public class App
     		JSONArray patternlist=nlu_result.getJSONObject("msg").getJSONArray("patternlist");
     		int max_level=0;
     		int max_offset=-1;
+    		//System.out.println(patternlist.size());
     		for(int i=0;i<patternlist.size();i++){
-    			
+    			//System.out.println(patternlist.getJSONObject(i).get("_act_type").toString());
     			if(Integer.parseInt(patternlist.getJSONObject(i).get("_level").toString())>max_level){
     				max_level=Integer.parseInt(patternlist.getJSONObject(i).get("_level").toString());
     				max_offset=i;
+    				//System.out.println(patternlist.getJSONObject(max_offset).get("_act_type").toString());
     			}
     			
     		}
@@ -55,6 +57,8 @@ public class App
     			String dst_addr=nlu_result.getJSONObject("msg").getJSONArray("patternlist").getJSONObject(max_offset).get("dstplace").toString();
     			String mode="walking";
     			String map_result=map.getdirection("清华大学"+src_addr,"清华大学"+ dst_addr, mode,"riding");
+    			
+    			if(!map_result.equals("error")){
     			int distance_offset=map_result.indexOf('$');
     			String distance=map_result.substring(0, distance_offset);
     			int riding_time_offset=map_result.indexOf('$', distance_offset+1);
@@ -87,6 +91,9 @@ public class App
     				String output=nlg_result.getJSONArray("msg").getJSONObject(0).get("output").toString();
     		    	System.out.println("output:"+output);
     			}
+    			}else{
+    				System.out.println("您所查询的地点无法从百度API精确获取，请您使用手工方式查询");
+    			}
     		}
     		if(act_type.equals("guide1")){
     			Guide_stage guide_stage=new Guide_stage();
@@ -118,12 +125,13 @@ public class App
     		    	//System.out.println("------get nlu response-----");
     		    	act_type=nlu_result.getJSONObject("msg").getJSONArray("patternlist").getJSONObject(0).get("_act_type").toString();
     		    	if(act_type.equals("guideinfo")){
-    		    		String dst_addr=nlu_result.getJSONObject("msg").getJSONArray("patternlist").getJSONObject(0).get("place").toString();
+    		    		String dst_addr=nlu_result.getJSONObject("msg").getJSONArray("patternlist").getJSONObject(1).get("dstplace").toString();
     		    		guide_stage.dst_addr=dst_addr;
     		    	}
     			}
     			String map_result=map.getdirection("清华大学"+guide_stage.src_addr, "清华大学"+guide_stage.dst_addr, guide_stage.mode,"riding");
     			
+    			if(!map_result.equals("error")){
     			int distance_offset=map_result.indexOf('$');
     			String distance=map_result.substring(0, distance_offset);
     			int riding_time_offset=map_result.indexOf('$', distance_offset+1);
@@ -146,7 +154,9 @@ public class App
     				String output=nlg_result.getJSONArray("msg").getJSONObject(0).get("output").toString();
     		    	System.out.println("output:"+output);
     			}
-    			
+    			}else{
+    				System.out.println("您所查询的地点无法从百度API精确获取，请您使用手工方式查询");
+    			}
     			
     		}
     		if(act_type.equals("guide2")){
@@ -181,11 +191,13 @@ public class App
     		    	act_type=nlu_result.getJSONObject("msg").getJSONArray("patternlist").getJSONObject(0).get("_act_type").toString();
     		    	if(act_type.equals("guideinfo")){
     		    		//System.out.println(act_type.equals("guideinfo"));
-    		    		String src_addr=nlu_result.getJSONObject("msg").getJSONArray("patternlist").getJSONObject(0).get("place").toString();
+    		    		String src_addr=nlu_result.getJSONObject("msg").getJSONArray("patternlist").getJSONObject(0).get("srcplace").toString();
     		    		guide_stage.src_addr=src_addr;
     		    	}
     			}
     			String map_result=map.getdirection("清华大学"+guide_stage.src_addr, "清华大学"+guide_stage.dst_addr, guide_stage.mode,"riding");
+    			
+    			if(!map_result.equals("error")){
     			int distance_offset=map_result.indexOf('$');
     			String distance=map_result.substring(0, distance_offset);
     			int riding_time_offset=map_result.indexOf('$', distance_offset+1);
@@ -207,6 +219,9 @@ public class App
     			if(nlg_result.get("errno").toString().equals("0")){
     				String output=nlg_result.getJSONArray("msg").getJSONObject(0).get("output").toString();
     		    	System.out.println("output:"+output);
+    			}
+    			}else{
+    				System.out.println("您所查询的地点无法从百度API精确获取，请您使用手工方式查询");
     			}
     		}
     		if(act_type.equals("guide31")){
